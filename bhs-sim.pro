@@ -32,3 +32,8 @@ SOURCES += engine/dpintegrator.cpp \
            sim/interface.cpp \
            sim/main.cpp \
            sim/simulation.cpp
+
+win32 {
+	SOURCES += sim/glee.c
+	HEADERS += sim/glee.h
+}

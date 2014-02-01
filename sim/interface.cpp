@@ -1,13 +1,14 @@
+#ifdef WIN32
+	#include "glee.h"
+	#define GLACTIVETEX glActiveTextureARB
+#else
+	#define GLACTIVETEX glActiveTexture
+#endif
+
 #include "interface.h"
 #include <stdio.h>
 #include <math.h>
 #include <QTime>
-
-#ifdef WIN32
-#include "glee.h"
-#define glActiveTexture glActiveTextureARB
-#define glMultiTexCoord2d glMultiTexCoord2dARB
-#endif
 
 /*#include <iostream>
 using namespace std;*/
@@ -325,17 +326,17 @@ void GraphicsWidget::initializeGL()
 	
 	glEnable(GL_ALPHA);
 	
-	glActiveTexture(GL_TEXTURE0);
+	GLACTIVETEX(GL_TEXTURE0);
 	tex_sky = bindTexture(QImage("data/sky.png"));
 	
-	glActiveTexture(GL_TEXTURE1);
+	GLACTIVETEX(GL_TEXTURE1);
 	glGenTextures(1, &tex_smallb);
 	glBindTexture(GL_TEXTURE_2D, tex_smallb);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, NRS_2, NBS_2, 0, GL_RGBA, GL_UNSIGNED_BYTE, small_b);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	
-	glActiveTexture(GL_TEXTURE2);
+	GLACTIVETEX(GL_TEXTURE2);
 	glGenTextures(1, &tex_largeb);
 	glBindTexture(GL_TEXTURE_2D, tex_largeb);
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
@@ -343,7 +344,7 @@ void GraphicsWidget::initializeGL()
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 	
-	glActiveTexture(GL_TEXTURE3);
+	GLACTIVETEX(GL_TEXTURE3);
 	tex_font = bindTexture(QImage("data/font.png"));
 	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
