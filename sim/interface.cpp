@@ -187,6 +187,13 @@ void GraphicsWidget::renderGPU(State s)
 
 #define N_CIRC 16
 
+double getT(State s)
+{
+	double r = s.pos[1];
+	double M = s.m->getMass();
+	return s.pos[0] - r - 2*M*log(0.5*(r-2*M)/M);
+}
+
 void GraphicsWidget::renderGauges(State s)
 {
 	//calculate velocity 
@@ -195,6 +202,7 @@ void GraphicsWidget::renderGauges(State s)
 	vector4 dt = vector4(1.0, 0.0, 0.0, 0.0);
 	dt /= sqrt(g -> g(dt, dt, s.pos));
 	
+	double t = getT(s);
 	double r = s.pos[1];
 	double M = sim -> getMass();
 	vector4 dr = vector4(r/(r-2*M), 1.0, 0.0, 0.0);
@@ -229,6 +237,12 @@ void GraphicsWidget::renderGauges(State s)
 	glTranslatef(-1.0, 0.87, 0.0);
 	glScalef(0.5, 0.5, 0.5);
 	outText(0.0, 0.0, "Time warp: " + QString::number(s.time_warp) + "x");
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-1.0, 0.8, 0.0);
+	glScalef(0.5, 0.5, 0.5);
+	outText(0.0, 0.0, "Time at infinity: " + QString::number(t, 'f', 3) + " s");
 	glPopMatrix();
 	
 	if(paused)

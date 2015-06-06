@@ -1,12 +1,13 @@
 #include "simulation.h"
 #include <QTime>
 #include <QTimer>
+#include <math.h>
 
 Simulation::Simulation()
 {
 	m = new SchwManifold(1.0);
 	double r0 = 30.0;
-	Point p0(EF, 0.0, r0, 1.5707, 0.0);
+	Point p0(EF, r0 + 2*log(0.5*(r0-2.0)), r0, 1.5707, 0.0);	// so that t = 0 at the beginning
 	ship = new Entity(m, p0, 
 						 vector4(1.0, 0.0, 0.0, 0.0),
 						 vector4(-r0/(r0-2.0), -1.0, 0.0, 0.0),
