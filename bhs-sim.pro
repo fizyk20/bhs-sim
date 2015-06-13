@@ -5,30 +5,30 @@
 TEMPLATE = app
 TARGET = 
 DEPENDPATH += . engine sim
-INCLUDEPATH += . engine sim
+INCLUDEPATH += . gr-engine/engine sim
 QT += opengl
 
 # Input
-HEADERS += engine/dpintegrator.h \
-           engine/entity.h \
-           engine/geometry.h \
-           engine/kerr.h \
-           engine/kerr_coords.h \
-           engine/numeric.h \
-           engine/particle.h \
-           engine/rk4integrator.h \
-           engine/schw.h \
+HEADERS += gr-engine/engine/dpintegrator.h \
+           gr-engine/engine/entity.h \
+           gr-engine/engine/geometry.h \
+           gr-engine/engine/kerr.h \
+           gr-engine/engine/kerr_coords.h \
+           gr-engine/engine/numeric.h \
+           gr-engine/engine/particle.h \
+           gr-engine/engine/rk4integrator.h \
+           gr-engine/engine/schw.h \
            sim/interface.h \
            sim/simulation.h
-SOURCES += engine/dpintegrator.cpp \
-           engine/entity.cpp \
-           engine/geometry.cpp \
-           engine/kerr.cpp \
-           engine/kerr_coords.cpp \
-           engine/numeric.cpp \
-           engine/particle.cpp \
-           engine/rk4integrator.cpp \
-           engine/schw.cpp \
+SOURCES += gr-engine/engine/dpintegrator.cpp \
+           gr-engine/engine/entity.cpp \
+           gr-engine/engine/geometry.cpp \
+           gr-engine/engine/kerr.cpp \
+           gr-engine/engine/kerr_coords.cpp \
+           gr-engine/engine/numeric.cpp \
+           gr-engine/engine/particle.cpp \
+           gr-engine/engine/rk4integrator.cpp \
+           gr-engine/engine/schw.cpp \
            sim/interface.cpp \
            sim/main.cpp \
            sim/simulation.cpp

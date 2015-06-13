@@ -1,9 +1,9 @@
 #ifndef __SIMULATION__
 #define __SIMULATION__
 
-#include <engine/entity.h>
-#include <engine/schw.h>
-#include <engine/rk4integrator.h>
+#include <entity.h>
+#include <schw.h>
+#include <rk4integrator.h>
 #include <QtGui>
 
 struct State
