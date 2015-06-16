@@ -4,7 +4,7 @@
 
 TEMPLATE = app
 TARGET = 
-DEPENDPATH += . engine sim
+DEPENDPATH += . gr-engine/engine sim
 INCLUDEPATH += . gr-engine/engine sim
 QT += opengl
 
