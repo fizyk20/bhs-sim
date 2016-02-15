@@ -2,6 +2,7 @@
 #include <schw.h>
 #include <dpintegrator.h>
 #include <iostream>
+#include <fstream>
 #include <stdio.h>
 #include <vector>
 #include <map>
@@ -69,13 +70,19 @@ double flat_final_phi(double phi)
 
 int main()
 {
-	double r = 20.0;
-
-	for(int i = 0; i < N_POINTS + 1; i++)
+	ofstream fout("deflection.csv");
+	cout << "Start" << endl;
+	fout << "r,phi,final,flat,deflection" << endl;
+	for(double r = 1.6; r <= 100.0; r += 0.4)
 	{
-		double phi = M_PI * i / N_POINTS;
-		double result = deflected_final_phi(r, phi);
-		cout << "Phi = " << phi << "\tFinal phi = " << result << "\tFlat final phi = " << flat_final_phi(phi) << endl;
+		for(int i = 0; i < N_POINTS + 1; i++)
+		{
+			double phi = M_PI * i / N_POINTS;
+			cout << "R = " << r << "\tPhi = " << phi << " (" << i+1 << "/" << N_POINTS << ")" << endl;
+			double result = deflected_final_phi(r, phi);
+			double flat = flat_final_phi(phi);
+			fout << r << "," << phi << "," << result << "," << flat << "," << flat - result << endl;
+		}
 	}
 	return 0;
 }
