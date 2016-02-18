@@ -102,16 +102,17 @@ int main()
 {
 	ofstream fout("deflection.csv");
 	cout << "Start" << endl;
-	fout << "r,phi,final,flat,deflection" << endl;
+	fout << "r,x,phi,final,flat,deflection" << endl;
 	for(double r = 1.0; r <= 100.0; r += 0.4)
 	{
 		for(int i = 0; i < N_POINTS + 1; i++)
 		{
-			double phi = map_phi(r, (double)i / N_POINTS);
+		    double x = (double)i / N_POINTS;
+			double phi = map_phi(r, x);
 			cout << "R = " << r << "\tPhi = " << phi << " (" << i+1 << "/" << N_POINTS+1 << ")" << endl;
 			double result = deflected_final_phi(r, phi);
 			double flat = flat_final_phi(phi);
-			fout << r << "," << phi << "," << result << "," << flat << "," << flat - result << endl;
+			fout << r << "," << x << "," << phi << "," << result << "," << flat << "," << flat - result << endl;
 		}
 	}
 	return 0;
