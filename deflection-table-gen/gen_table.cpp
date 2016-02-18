@@ -18,7 +18,7 @@ using namespace std;
  */
 #define N_R 100			// number of points in the R coordinate
 #define N_POINTS 180	// number of points on each circle
-#define HORIZON 2.6*M
+#define PSPHERE 3.0*M
 
 const double M = 0.5;
 SchwManifold manifold(M);
@@ -31,22 +31,52 @@ vector4 ray(double M, double r, double phi)
 	return T + A*cos(phi) + vector4(0., 0., 0., -1./r)*sin(phi);
 }
 
+double threshold_phi(double r)
+{
+    double a = 27.0/8*M*M;
+    double b = r + 2*M;
+    double c = 3*r - 2*M;
+    double rm = r/M;
+    double delta = 4*M*M*M*r*r*r*r*r*(rm*rm*rm - 27*rm + 54);
+    if(r < 3.0*M)
+    {
+        return acos((a*b*c - 0.5*sqrt(delta))/(a*b*b + r*r*r*r));
+    }
+    else
+    {
+        return acos((a*b*c + 0.5*sqrt(delta))/(a*b*b + r*r*r*r));
+    }
+}
+
+// function mapping 0-1 interval onto the set of possible angles
+double map_phi(double r, double x)
+{
+    if(x <= 0.0) x = 0.000001;
+    if(x > 1.0) x = 1.0;
+
+    double min_phi = threshold_phi(r);
+    double max_phi = M_PI;
+    return (max_phi-min_phi)*x + min_phi;
+}
+
 double deflected_final_phi(double r, double phi)
 {
+    bool start_below_psphere = r <= PSPHERE;
+
 	Particle photon(&manifold, Point(EF, 0.0, r, M_PI/2, M_PI), ray(M, r, phi));
 	DPIntegrator integrator;
 	integrator.setStepSize(1e-4);
-	integrator.setMaxErr(1e-12);
+	integrator.setMaxErr(1e-11);
 	photon.setIntegrator(&integrator);
 
 	Metric* g = manifold.getMetric(EF);
-	while(photon.getPos()[1] < 1000.0*M && photon.getPos()[1] > HORIZON)
+	while(photon.getPos()[1] < 1000.0*M && ((!start_below_psphere && photon.getPos()[1] > PSPHERE) || (start_below_psphere && photon.getPos()[1] >= r)))
 	{
 		//cout << "\tr = " << photon.getPos()[1] << "\tphi = " << photon.getPos()[3] << "\t" << g->g(photon.getVel(), photon.getVel(), photon.getPos()) << endl;
 		photon.propagate();
 	}
 
-	if(photon.getPos()[1] <= HORIZON)
+	if(photon.getPos()[1] <= PSPHERE)
 		return -1000.0;
 
 	double final_phi = photon.getPos()[3];	// phi coordinate
@@ -73,12 +103,12 @@ int main()
 	ofstream fout("deflection.csv");
 	cout << "Start" << endl;
 	fout << "r,phi,final,flat,deflection" << endl;
-	for(double r = 1.6; r <= 100.0; r += 0.4)
+	for(double r = 1.0; r <= 100.0; r += 0.4)
 	{
 		for(int i = 0; i < N_POINTS + 1; i++)
 		{
-			double phi = M_PI * i / N_POINTS;
-			cout << "R = " << r << "\tPhi = " << phi << " (" << i+1 << "/" << N_POINTS << ")" << endl;
+			double phi = map_phi(r, (double)i / N_POINTS);
+			cout << "R = " << r << "\tPhi = " << phi << " (" << i+1 << "/" << N_POINTS+1 << ")" << endl;
 			double result = deflected_final_phi(r, phi);
 			double flat = flat_final_phi(phi);
 			fout << r << "," << phi << "," << result << "," << flat << "," << flat - result << endl;
