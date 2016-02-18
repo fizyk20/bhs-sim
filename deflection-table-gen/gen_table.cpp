@@ -1,7 +1,8 @@
 #include <particle.h>
 #include <schw.h>
-#include <dpintegrator.h>
+#include <rk4integrator.h>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <stdio.h>
 #include <vector>
@@ -31,19 +32,44 @@ vector4 ray(double M, double r, double phi)
 	return T + A*cos(phi) + vector4(0., 0., 0., -1./r)*sin(phi);
 }
 
+double b(double r, vector4 v)
+{
+    return r*r*r*v[3]/(r-2*M)/v[0]/M;
+}
+
 double deflected_final_phi(double r, double phi)
 {
-	Particle photon(&manifold, Point(EF, 0.0, r, M_PI/2, M_PI), ray(M, r, phi));
-	DPIntegrator integrator;
-	integrator.setStepSize(1e-4);
-	integrator.setMaxErr(1e-12);
+    vector4 v0 = ray(M, r, phi);
+    cout << setprecision(10);
+    cout << "v0 = [" << v0[0] << ", " << v0[1] << ", " << v0[2] << ", " << v0[3] << "] " << b(r, v0) << endl;
+	Particle photon(&manifold, Point(EF, 0.0, r, M_PI/2, M_PI), v0);
+	RK4Integrator integrator(1e-2);
+	//integrator.setStepSize(1e-4);
+	//integrator.setMaxErr(1e-6);
 	photon.setIntegrator(&integrator);
 
 	Metric* g = manifold.getMetric(EF);
 	while(photon.getPos()[1] < 1000.0*M && photon.getPos()[1] > HORIZON)
 	{
-		//cout << "\tr = " << photon.getPos()[1] << "\tphi = " << photon.getPos()[3] << "\t" << g->g(photon.getVel(), photon.getVel(), photon.getPos()) << endl;
+        double r = photon.getPos()[1];
+        double E = (1-2*M/r)*photon.getVel()[0];
+        double L = r*r*photon.getVel()[3];
+
+		cout << "\tr = " << r << "\tphi = " << photon.getPos()[3] << "\tlen = " << g->g(photon.getVel(), photon.getVel(), photon.getPos());
+        cout << "\tb = " << b(r, photon.getVel()) << "\tE = " << E;
+        cout << "\tL = " << L;
 		photon.propagate();
+
+        // E and L correction
+        r = photon.getPos()[1];
+        vector4 v = photon.getVel();
+        cout << "\tv_b = [" << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << "]";
+        v[0] = E/(1-2*M/r);
+        v[3] = L/r/r;
+        v[1] = E/2 - L*L*(1-2*M/r)/2/E/r/r;
+        v[2] = 0.0;
+        cout << "\tv = [" << v[0] << ", " << v[1] << ", " << v[2] << ", " << v[3] << "]" << endl;
+        photon.setVel(v);
 	}
 
 	if(photon.getPos()[1] <= HORIZON)
@@ -70,7 +96,7 @@ double flat_final_phi(double phi)
 
 int main()
 {
-	ofstream fout("deflection.csv");
+	/*ofstream fout("deflection.csv");
 	cout << "Start" << endl;
 	fout << "r,phi,final,flat,deflection" << endl;
 	for(double r = 1.6; r <= 100.0; r += 0.4)
@@ -83,6 +109,7 @@ int main()
 			double flat = flat_final_phi(phi);
 			fout << r << "," << phi << "," << result << "," << flat << "," << flat - result << endl;
 		}
-	}
+	}*/
+    cout << deflected_final_phi(1.6, 0.82) << endl;
 	return 0;
 }
