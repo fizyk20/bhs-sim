@@ -104,6 +104,13 @@ double flat_final_phi(double phi)
 	return acos((3*cosphi-1)/(3-cosphi));
 }
 
+double calc_b(double r, double x)
+{
+    double phi = map_phi(r, x);
+    vector4 v = ray(M, r, phi);
+    return r*r*v[3]/((1-2*M/r)*v[0] - v[1]);
+}
+
 int main(int argc, char** argv)
 {
     if(argc < 2)
@@ -125,7 +132,7 @@ int main(int argc, char** argv)
 		double result = deflected_final_phi(r, phi);
 		double flat = flat_final_phi(phi);
 		cout << "R = " << r << "\tx = " << x << "\tPhi = " << phi << "\tResult = " << result << "\tFlat = " << flat << "\tDefl = " << flat - result << endl;
-		fout << r << "\t" << flat - result << endl;
+		fout << r << "\t" << flat - result << "\t" << calc_b(r,x) << endl;
 	}
 
 	fout.close();
