@@ -7,6 +7,7 @@
 #include <vector>
 #include <map>
 #include <math.h>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -16,13 +17,12 @@ using namespace std;
  * - generate light rays directed to the past for the circle in the horizontal plane
  * - propagate them and find the resulting deflection
  */
-#define N_R 100			// number of points in the R coordinate
-#define N_POINTS 180	// number of points on each circle
 #define PSPHERE 3.0*M
 
 const double M = 0.5;
 SchwManifold manifold(M);
 
+// function generating a parametrized four-velocity of a ray of light
 vector4 ray(double M, double r, double phi)
 {
 	vector4 T(-1.0/sqrt(2), (M/r + 0.5)/sqrt(2), 0., 0.);
@@ -31,6 +31,7 @@ vector4 ray(double M, double r, double phi)
 	return T + A*cos(phi) + vector4(0., 0., 0., -1./r)*sin(phi);
 }
 
+// this returns the minimal phi for which the ray doesn't fall into the black hole
 double threshold_phi(double r)
 {
     double a = 27.0/8*M*M;
@@ -59,6 +60,8 @@ double map_phi(double r, double x)
     return (max_phi-min_phi)*x + min_phi;
 }
 
+// function calculating the final phi coordinate of a deflected ray
+// the input parameters are the starting r coordinate and the angle from the direction to the black hole
 double deflected_final_phi(double r, double phi)
 {
     bool start_below_psphere = r <= PSPHERE;
@@ -67,12 +70,14 @@ double deflected_final_phi(double r, double phi)
 	DPIntegrator integrator;
 	integrator.setStepSize(1e-4);
 	integrator.setMaxErr(1e-11);
+	integrator.setMaxStep(1.0);
 	photon.setIntegrator(&integrator);
 
 	Metric* g = manifold.getMetric(EF);
-	while(photon.getPos()[1] < 1000.0*M && ((!start_below_psphere && photon.getPos()[1] > PSPHERE) || (start_below_psphere && photon.getPos()[1] >= r)))
+	while((photon.getPos()[1] < 1000.0*M || photon.getPos()[1] < 30*r) &&   // generate until R = 1000 M or R = 30 R0, whichever is greater
+	     // if starting from below photon sphere, treat passing the starting radius as falling in; else, it is passing the photon sphere
+	      ((!start_below_psphere && photon.getPos()[1] > PSPHERE) || (start_below_psphere && photon.getPos()[1] >= r)))
 	{
-		//cout << "\tr = " << photon.getPos()[1] << "\tphi = " << photon.getPos()[3] << "\t" << g->g(photon.getVel(), photon.getVel(), photon.getPos()) << endl;
 		photon.propagate();
 	}
 
@@ -84,7 +89,7 @@ double deflected_final_phi(double r, double phi)
 	double factor = sqrt(1.0 - 2.0*M/photon.getPos()[1]);
 
 	// approximate the rest of the path by a straight line - calculate the additional angle
-	double vr = factor*photon.getVel()[0] + photon.getVel()[1]/factor;
+	double vr = photon.getVel()[1]/factor;
 	double vphi = photon.getPos()[1] * photon.getVel()[3];
 
 	double add_phi = atan2(vphi, vr);
@@ -92,28 +97,37 @@ double deflected_final_phi(double r, double phi)
 	return final_phi + add_phi;
 }
 
+// function returning the final phi coordinate of a ray if it was travelling in a flat space
 double flat_final_phi(double phi)
 {
 	double cosphi = cos(phi);
 	return acos((3*cosphi-1)/(3-cosphi));
 }
 
-int main()
+int main(int argc, char** argv)
 {
-	ofstream fout("deflection.csv");
+    if(argc < 2)
+    {
+        cout << "Usage: gen_table x" << endl;
+        return 0;
+    }
+    double x = atof(argv[1]);   // this is the parameter between 0 and 1 that will be mapped to the angle of the ray
+    char filename[30];
+    sprintf(filename, "def-x%2.1f.dat", x);
+
+	ofstream fout(filename);
 	cout << "Start" << endl;
-	fout << "r,x,phi,final,flat,deflection" << endl;
-	for(double r = 1.0; r <= 100.0; r += 0.4)
+	for(double rx = -50.0; rx <= 70.0; rx += 1.0)
 	{
-		for(int i = 0; i < N_POINTS + 1; i++)
-		{
-		    double x = (double)i / N_POINTS;
-			double phi = map_phi(r, x);
-			cout << "R = " << r << "\tPhi = " << phi << " (" << i+1 << "/" << N_POINTS+1 << ")" << endl;
-			double result = deflected_final_phi(r, phi);
-			double flat = flat_final_phi(phi);
-			fout << r << "," << x << "," << phi << "," << result << "," << flat << "," << flat - result << endl;
-		}
+	    // generate the values of the radius to focus on the area below the photon sphere
+	    double r = 3*M*exp(rx/10);
+		double phi = map_phi(r, x);
+		double result = deflected_final_phi(r, phi);
+		double flat = flat_final_phi(phi);
+		cout << "R = " << r << "\tx = " << x << "\tPhi = " << phi << "\tResult = " << result << "\tFlat = " << flat << "\tDefl = " << flat - result << endl;
+		fout << r << "\t" << flat - result << endl;
 	}
+
+	fout.close();
 	return 0;
 }
