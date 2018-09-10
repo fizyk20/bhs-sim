@@ -133,7 +133,7 @@ void GraphicsWidget::outText(double x, double y, QString txt)
 	
 	for(i=0; i<txt.length(); i++)
 	{
-		unsigned char c = txt.toAscii().data()[i];
+		unsigned char c = txt.toLatin1().data()[i];
 		double ty = 15.0/16.0 - floor((double)c/16.0)/16.0;
 		double tx = ((double)c - floor((double)c/16.0)*16.0)/16.0;
 		
