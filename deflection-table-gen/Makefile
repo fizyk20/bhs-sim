@@ -10,4 +10,4 @@ SOURCES       = gen_table.cpp \
 		../gr-engine/engine/schw.cpp
 
 gen_table: $(SOURCES)
-	g++ -I../gr-engine/engine -o gen_table $(SOURCES)
+	g++ -O2 -I../gr-engine/engine -o gen_table $(SOURCES)
